@@ -15,6 +15,8 @@ Account::~Account()
 }
 #pragma endregion
 
+#pragma region Get and Set Functions
+
 int Account::GetAccountNumber()
 {
 	return this->_accountNumber;
@@ -50,6 +52,4 @@ void Account::SetAccountStatus(string status)
 	this->_accountStatus = status;
 }
 
-void Account::CloseAccount(){
-
-}
+#pragma endregion
