@@ -24,6 +24,14 @@ Database *db = new Database();
 // display of the transactionHistory of an account.
 std::vector<Page> history;
 
+// This stack is used to store the list of TRANSACTIONS which
+// are used to create a transaction history for the customer.
+std::stack<Transaction> listOfTransactions;
+
+// This stack is used to store the list of TRANSFERS which
+// are used to create a transaction history for the customer.
+std::stack<Transfer> listOfTransfers;
+
 #pragma endregion
 
 // default ATM Constructor
@@ -332,17 +340,12 @@ void ATM::PerformTransfer() {
 // because this code is extremely redundant.
 void ATM::ShowTransactionHistory() 
 {
-	// Call upon the database and send it the account number and a vector which
-	// will be used to store "Page" objects which comprise a history.
-	db->populateTransactionHistory(account->GetAccountNumber(), &history);
+	// Call upon the database and send it the account number and a stack which
+	// will be used to store the transactions tied to this account.
+	db->populateAccountTransactions(account->GetAccountNumber(), &listOfTransactions);
 
-	// Use the UI to to display the newly-created history along with the customer's name.
-	ui->ShowTransactionHistory(history, customer->GetFirstName(), customer->GetLastName());
-
-	// Clear the history vector because another transaction could occur while
-	// this user is logged in and a new history will have to be built to
-	// reflect that.
-	history.clear();
+	// Use the UI to to build and display a transaction history along with the customer's name.
+	ui->ShowTransactionHistory(ui->BuildTransactionHistory(&listOfTransactions), customer->GetFirstName(), customer->GetLastName());
 }
 
 // This logic executes if the user selected to view their TRANSFER history from the Main Menu.
@@ -352,15 +355,10 @@ void ATM::ShowTransferHistory()
 {	
 	// Call upon the database and send it the account number and a vector which
 	// will be used to store "Page" objects which comprise a history.
-	db->populateTransferHistory(account->GetAccountNumber(), &history);
+	db->populateAccountTransfers(account->GetAccountNumber(), &listOfTransfers);
 	
 	// Use the UI to to display the newly-created history along with the customer's name.
-	ui->ShowTransferHistory(history, customer->GetFirstName(), customer->GetLastName());
-	
-	// Clear the history vector because another transaction could occur while
-	// this user is logged in and a new history will have to be built to
-	// reflect that.
-	history.clear();
+	ui->ShowTransferHistory(ui->BuildTransferHistory(&listOfTransfers), customer->GetFirstName(), customer->GetLastName());
 }
 
 // This logic executes if the user selected to manage their account from the Main Menu

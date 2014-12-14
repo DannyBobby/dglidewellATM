@@ -3,8 +3,11 @@
 
 #include <string>
 #include <vector>
+#include <stack>
 #include "Page.h"
 #include "Customer.h"
+#include "Transaction.h"
+#include "Transfer.h"
 
 using namespace std;
 
@@ -60,6 +63,11 @@ public:
 	void ShowAccountBalance(string custName, int acctNum, double acctBalance);
 	void ShowTransactionSuccessMessage();
 	void ShowErrorMessage(char *message);
+
+	//Builds transaction history used by ShowTransactionHistory()
+	vector <Page> UI::BuildTransactionHistory(stack<Transaction> *listOfTransactions);
+	//Builds transfer history used by ShowTransferHistory()
+	vector <Page> UI::BuildTransferHistory(stack <Transfer> *listOfTransfers);
 
 	// These functions are so similar that they really should be consolidated.
 	void ShowTransactionHistory(vector<Page> transactionHistory, string firstName, string lastName);

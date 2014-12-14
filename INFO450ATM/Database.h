@@ -13,6 +13,7 @@
 #include <iostream>
 #include <exception>
 #include <vector>
+#include <stack>
 #include "Account.h"
 #include "Customer.h"
 #include "Transaction.h"
@@ -593,7 +594,7 @@ public:
 	// to find all those TRANSACTIONS for an account, list them in descending order, 
 	// build strings with the data, write those strings to a page, and add the page
 	// to a "history".
-	void populateTransactionHistory(int accountNumber, vector<Page> *transactionHistory)
+	void populateAccountTransactions(int accountNumber, stack<Transaction> *listOfTransactions)
 	{
 		// First create a pointer to a SQLiteDatabase using
 		// the connect() function defined above and then
@@ -608,13 +609,8 @@ public:
 		string retrievedTransactionType = "";
 		string retrievedDate = "";
 
-		// Prepare a vector which stores the lines 
-		// to be written to the page which is currently
-		// "in progress"
-		vector <string> linesToPage;
-
 		// Use the customerNumber and accountType passed to this method to query the database.
-		pStmt->Sql("SELECT * FROM AccountTransaction WHERE accountNumber = ? ORDER BY date DESC;");
+		pStmt->Sql("SELECT * FROM AccountTransaction WHERE accountNumber = ? ORDER BY date;");
 		pStmt->BindInt(1, accountNumber);
 
 		// Process the results of the query above - assigning the values of each
@@ -625,72 +621,10 @@ public:
 			retrievedTransactionAmt = pStmt->GetColumnDouble("transactionAmount");
 			retrievedTransactionType = pStmt->GetColumnString("transactionType");
 			retrievedDate = pStmt->GetColumnString("date");
+		
+			Transaction transaction = Transaction(retrievedTransactionNumber, accountNumber, retrievedTransactionAmt, retrievedTransactionType, retrievedDate);
 
-			/******************************************************************************
-			 *The following code is all about getting the format correct for each line.
-			 ******************************************************************************/
-				
-			// Get the length of the transactionNumber (it could be a single digit, two digits,
-			// three digits, etc.)
-			int sizeOfTransactionNumber = std::to_string(retrievedTransactionNumber).length();
-			string transactionNumColumnPadding = "";  // string variable to store the "padding"
-
-			// Build a string comprised of spaces.  The number of spaces is determined by the 
-			// difference between the "length" of the transaction number (in digits) and the number
-			// 6.  Why 6? Because it looks nice.
-			for (sizeOfTransactionNumber; sizeOfTransactionNumber < 6; sizeOfTransactionNumber++)
-			{
-				transactionNumColumnPadding += " ";
-			}
-
-			// Format the transactionAmount.  It's currency, so we only want
-			// two places after the decimal.
-			string retTransAmt = std::to_string(retrievedTransactionAmt);  // Turn it into a string
-			size_t dotIndex = retTransAmt.find(".");  // Find out where the "." is 
-			retTransAmt = retTransAmt.substr(0, dotIndex + 3);  // Trim the string
-			int sizeOfTransactionAmt = retTransAmt.length();  // Get the length of the string
-			string transactionAmtColumnPadding = "";  // string variable to store the padding.
-
-			// Build a string comprised of spaces in the same we as we did for the transactionNumber
-			// column above.
-			for (sizeOfTransactionAmt; sizeOfTransactionAmt < 10; sizeOfTransactionAmt++)
-			{
-				transactionAmtColumnPadding += " ";
-			}
-
-			// Build the line by concatenating the various strings created so far.
-			string additionalLine = "\t      " + std::to_string(retrievedTransactionNumber) + 
-				transactionNumColumnPadding + " |  $" +
-				transactionAmtColumnPadding + 
-				retTransAmt + " |  " +
-				retrievedTransactionType + "   |  " +
-				retrievedDate;
-
-			// Add the completed line to the vector representing the
-			// collection of lines on the page.
-			linesToPage.push_back(additionalLine);
-		}
-
-		// This variable stores the number of lines (transactions)
-		// which have been written.
-		unsigned int numberOfLinesWritten = 0;
-
-		// As long as there are still lines that need to be written, loop
-		while (numberOfLinesWritten < linesToPage.size())
-		{
-			// Create a new page with room for 10 total lines.
-			Page page;
-
-			// While there is still room to write on the page, add an additional line from the vector
-			// made above.  Be sure to increment the numberOfLinesWritten as we add to each page.
-			for (unsigned int i = 0; i < page.GetMaximumNumberOfLines() && numberOfLinesWritten < linesToPage.size(); i++, numberOfLinesWritten++)
-			{
-				page.AddLine(linesToPage[numberOfLinesWritten]);
-			}
-
-			// Once the maximum number of lines has been reached for the page, add the page to the 
-			// transactionHistory vector.
-			transactionHistory->push_back(page);
+			listOfTransactions->push(transaction);
 		}
 
 		// "Clean up"
@@ -705,7 +639,7 @@ public:
 	// to find all those TRANSFERS for an account, list them in descending order, 
 	// build strings with the data, write those strings to a page, and add the page
 	// to a "history".
-	void populateTransferHistory(int accountNumber, vector<Page> *transferHistory)
+	void populateAccountTransfers(int accountNumber, stack<Transfer> *listOfTransfers)
 	{
 		// First create a pointer to a SQLiteDatabase using
 		// the connect() function defined above and then
@@ -724,7 +658,7 @@ public:
 		vector <string> linesToPage;
 
 		// Use the customerNumber and accountType passed to this method to query the database.
-		pStmt->Sql("SELECT * FROM AccountTransfer WHERE sourceAccountNumber = ? OR destinationAccount = ? ORDER BY date DESC;");
+		pStmt->Sql("SELECT * FROM AccountTransfer WHERE sourceAccountNumber = ? OR destinationAccount = ? ORDER BY date;");
 		pStmt->BindInt(1, accountNumber);
 		pStmt->BindInt(2, accountNumber);
 
@@ -738,86 +672,11 @@ public:
 			retrievedTransferAmt = pStmt->GetColumnDouble("transactionAmount");
 			retrievedDate = pStmt->GetColumnString("date");
 
-			// Determine column padding for transferNumber
-			int sizeOfNumber = std::to_string(retrievedTransferNumber).length();
-			string transferNumColumnPadding = "";
+			Transfer newTransfer = Transfer(retrievedTransferNumber, retrievedSourceAccount, retrievedDestinationAccount, retrievedTransferAmt, retrievedDate);
 
-			// Build the column padding
-			for (sizeOfNumber; sizeOfNumber < 7; sizeOfNumber++)
-			{
-				transferNumColumnPadding += " ";
-			}
-
-			// Determine column padding for sourceAccount
-			sizeOfNumber = std::to_string(retrievedSourceAccount).length();
-			string sourceAccountColumnPadding = "";
-
-			// Build the column padding
-			for (sizeOfNumber; sizeOfNumber < 5; sizeOfNumber++)
-			{
-				sourceAccountColumnPadding += " ";
-			}
-
-			// Determine column padding for destinationAccount
-			sizeOfNumber = std::to_string(retrievedDestinationAccount).length();
-			string destinationAccountColumnPadding = "";
-
-			// Build the column padding
-			for (sizeOfNumber; sizeOfNumber < 5; sizeOfNumber++)
-			{
-				destinationAccountColumnPadding += " ";
-			}
-
-			// Format transferAmt output and determine column padding for transferAmt
-			string retTransAmt = std::to_string(retrievedTransferAmt);
-			size_t dotIndex = retTransAmt.find(".");
-			retTransAmt = retTransAmt.substr(0, dotIndex + 3);
-			int sizeOfTransferAmt = retTransAmt.length();
-			string transferAmtColumnPadding = "";
-
-			// Build the column padding
-			for (sizeOfTransferAmt; sizeOfTransferAmt < 10; sizeOfTransferAmt++)
-			{
-				transferAmtColumnPadding += " ";
-			}
-
-			// Build the line item
-			string additionalLine = "      " + std::to_string(retrievedTransferNumber) +
-				transferNumColumnPadding + " |  " +
-				std::to_string(retrievedSourceAccount) + 
-				sourceAccountColumnPadding + " |  " + 
-				std::to_string(retrievedDestinationAccount) + 
-				destinationAccountColumnPadding + " |  $" +
-				transferAmtColumnPadding +
-				retTransAmt + " |  " +
-				retrievedDate;
-
-			// Add the line item to the list of lines to be written in the report.
-			linesToPage.push_back(additionalLine);
+			listOfTransfers->push(newTransfer);			
 		}
-
-		// This variable stores the number of lines (transactions)
-		// which have been written.
-		unsigned int numberOfLinesWritten = 0;
-
-		// As long as there are still lines that need to be written, loop
-		while (numberOfLinesWritten < linesToPage.size())
-		{
-			// Create a new page with room for 10 total lines.
-			Page page;
-
-			// While there is still room to write on the page, add an additional line from the vector
-			// made above.  Be sure to increment the numberOfLinesWritten as we add to each page.
-			for (unsigned int i = 0; i < page.GetMaximumNumberOfLines() && numberOfLinesWritten < linesToPage.size(); i++, numberOfLinesWritten++)
-			{
-				page.AddLine(linesToPage[numberOfLinesWritten]);
-			}
-
-			// Once the maximum number of lines has been reached for the page, add the page to the 
-			// transactionHistory vector.
-			transferHistory->push_back(page);
-		}
-
+		
 		// "Clean up"
 		pStmt->FreeQuery();
 

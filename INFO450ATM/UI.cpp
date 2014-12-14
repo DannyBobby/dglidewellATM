@@ -744,6 +744,198 @@ void UI::ShowErrorMessage(char *message)
 	this->PressAnyKeyToContinue();
 }
 
+// Builds transaction history
+vector <Page> UI::BuildTransactionHistory(stack<Transaction> *listOfTransactions)
+{
+	// Prepare a vector which stores the lines 
+	// to be written to the page which is currently
+	// "in progress"
+	vector <string> linesToPage;
+
+	// This vector is what is built over the course
+	// of the function and eventually returned.
+	vector <Page> transactionHistory;
+
+	// While their are still lines "waiting to be written" on the stack, loop.
+	while (listOfTransactions->size() > 0)
+	{
+		/******************************************************************************
+		 *The following code is all about getting the format correct for each line.
+		 ******************************************************************************/
+		Transaction workingTransaction = listOfTransactions->top();
+
+		// Get the length of the transactionNumber (it could be a single digit, two digits,
+		// three digits, etc.)		
+		int sizeOfTransactionNumber = std::to_string(workingTransaction.GetTransactionNumber()).length();
+		string transactionNumColumnPadding = "";  // string variable to store the "padding"
+
+		// Build a string comprised of spaces.  The number of spaces is determined by the 
+		// difference between the "length" of the transaction number (in digits) and the number
+		// 6.  Why 6? Because it looks nice.
+		for (sizeOfTransactionNumber; sizeOfTransactionNumber < 6; sizeOfTransactionNumber++)
+		{
+			transactionNumColumnPadding += " ";
+		}
+
+		// Format the transactionAmount.  It's currency, so we only want
+		// two places after the decimal.
+		string retTransAmt = std::to_string(workingTransaction.GetTransactionAmount());  // Turn it into a string
+		size_t dotIndex = retTransAmt.find(".");  // Find out where the "." is 
+		retTransAmt = retTransAmt.substr(0, dotIndex + 3);  // Trim the string
+		int sizeOfTransactionAmt = retTransAmt.length();  // Get the length of the string
+		string transactionAmtColumnPadding = "";  // string variable to store the padding.
+
+		// Build a string comprised of spaces in the same we as we did for the transactionNumber
+		// column above.
+		for (sizeOfTransactionAmt; sizeOfTransactionAmt < 10; sizeOfTransactionAmt++)
+		{
+			transactionAmtColumnPadding += " ";
+		}
+
+		// Build the line by concatenating the various strings created so far.
+		string additionalLine = "\t      " + std::to_string(workingTransaction.GetTransactionNumber()) +
+			transactionNumColumnPadding + " |  $" +
+			transactionAmtColumnPadding +
+			retTransAmt + " |  " +
+			workingTransaction.GetTransactionType() + "   |  " +
+			workingTransaction.GetDate();
+
+		// Add the completed line to the vector representing the
+		// collection of lines on the page.
+		linesToPage.push_back(additionalLine);
+
+		// Reduce the size of the stack by one
+		listOfTransactions->pop();
+	}
+
+	// This variable stores the number of lines (transactions)
+	// which have been written.
+	unsigned int numberOfLinesWritten = 0;
+
+	// As long as there are still lines that need to be written, loop
+	while (numberOfLinesWritten < linesToPage.size())
+	{
+		// Create a new page with room for 10 total lines.
+		Page page;
+
+		// While there is still room to write on the page, add an additional line from the vector
+		// made above.  Be sure to increment the numberOfLinesWritten as we add to each page.
+		for (unsigned int i = 0; i < page.GetMaximumNumberOfLines() && numberOfLinesWritten < linesToPage.size(); i++, numberOfLinesWritten++)
+		{
+			page.AddLine(linesToPage[numberOfLinesWritten]);
+		}
+
+		// Once the maximum number of lines has been reached for the page, add the page to the 
+		// transactionHistory vector.
+		transactionHistory.push_back(page);
+	}
+
+	return transactionHistory;
+}
+
+// Builds transfer history
+vector <Page> UI::BuildTransferHistory(stack <Transfer> *listOfTransfers)
+{
+	// Prepare a vector which stores the lines 
+	// to be written to the page which is currently
+	// "in progress"
+	vector <string> linesToPage;
+
+	// This vector is what is built over the course
+	// of the function and eventually returned.
+	vector <Page> transferHistory;
+
+	// While their are still lines "waiting to be written" on the stack, loop.
+	while (listOfTransfers->size() > 0)
+	{
+		Transfer workingTransfer = listOfTransfers->top();
+
+		// Determine column padding for transferNumber
+		int sizeOfNumber = std::to_string(workingTransfer.GetTransactionNumber()).length();
+		string transferNumColumnPadding = "";
+
+		// Build the column padding
+		for (sizeOfNumber; sizeOfNumber < 7; sizeOfNumber++)
+		{
+			transferNumColumnPadding += " ";
+		}
+
+		// Determine column padding for sourceAccount
+		sizeOfNumber = std::to_string(workingTransfer.GetAccountNumber()).length();
+		string sourceAccountColumnPadding = "";
+
+		// Build the column padding
+		for (sizeOfNumber; sizeOfNumber < 5; sizeOfNumber++)
+		{
+			sourceAccountColumnPadding += " ";
+		}
+
+		// Determine column padding for destinationAccount
+		sizeOfNumber = std::to_string(workingTransfer.GetDestinationAccountNumber()).length();
+		string destinationAccountColumnPadding = "";
+
+		// Build the column padding
+		for (sizeOfNumber; sizeOfNumber < 5; sizeOfNumber++)
+		{
+			destinationAccountColumnPadding += " ";
+		}
+
+		// Format transferAmt output and determine column padding for transferAmt
+		string retTransAmt = std::to_string(workingTransfer.GetTransactionAmount());
+		size_t dotIndex = retTransAmt.find(".");
+		retTransAmt = retTransAmt.substr(0, dotIndex + 3);
+		int sizeOfTransferAmt = retTransAmt.length();
+		string transferAmtColumnPadding = "";
+
+		// Build the column padding
+		for (sizeOfTransferAmt; sizeOfTransferAmt < 10; sizeOfTransferAmt++)
+		{
+			transferAmtColumnPadding += " ";
+		}
+
+		// Build the line item
+		string additionalLine = "      " + std::to_string(workingTransfer.GetTransactionNumber()) +
+			transferNumColumnPadding + " |  " +
+			std::to_string(workingTransfer.GetAccountNumber()) +
+			sourceAccountColumnPadding + " |  " +
+			std::to_string(workingTransfer.GetDestinationAccountNumber()) +
+			destinationAccountColumnPadding + " |  $" +
+			transferAmtColumnPadding +
+			retTransAmt + " |  " +
+			workingTransfer.GetDate();
+
+		// Add the line item to the list of lines to be written in the report.
+		linesToPage.push_back(additionalLine);
+
+		// Reduce the size of the stack by one
+		listOfTransfers->pop();
+	}
+
+	// This variable stores the number of lines (transactions)
+	// which have been written.
+	unsigned int numberOfLinesWritten = 0;
+
+	// As long as there are still lines that need to be written, loop
+	while (numberOfLinesWritten < linesToPage.size())
+	{
+		// Create a new page with room for 10 total lines.
+		Page page;
+
+		// While there is still room to write on the page, add an additional line from the vector
+		// made above.  Be sure to increment the numberOfLinesWritten as we add to each page.
+		for (unsigned int i = 0; i < page.GetMaximumNumberOfLines() && numberOfLinesWritten < linesToPage.size(); i++, numberOfLinesWritten++)
+		{
+			page.AddLine(linesToPage[numberOfLinesWritten]);
+		}
+
+		// Once the maximum number of lines has been reached for the page, add the page to the 
+		// transactionHistory vector.
+		transferHistory.push_back(page);
+	}
+
+	return transferHistory;	
+}
+
 // Function to display transaction history
 void UI::ShowTransactionHistory(vector<Page> transactionHistory, string firstName, string lastName)
 {
