@@ -33,6 +33,8 @@ public:
 	// The function names are pretty self-explanatory.
 	bool ShowReturningCustomerNewCustomerPrompt();
 	bool ShowCreateNewCustomerProfileForm(Customer *cust);
+	bool ValidateEmail(string const& email);
+	bool ValidatePIN(int pin);
 	string ShowLoginPrompt();
 	int ShowPINPrompt();
 

@@ -155,19 +155,74 @@ bool UI::ShowCreateNewCustomerProfileForm(Customer *cust)
 		this->ClearBuffer();
 
 		// ...and email address...
-		cout << "     Email Address: ";
-		cin >> emailAddress;
-		this->ClearBuffer();
+		do 
+		{
+			// Prompt for the email address
+			cout << "     Email Address: ";
+			// Store the input from the user
+			cin >> emailAddress;
+			// Clear the cin buffer
+			this->ClearBuffer();
+			// Check to see if the email address
+			// is of the correct format.
+			if (!ValidateEmail(emailAddress))
+			{
+				// If the email address isn't valid, redraw the screen
+				// with an "*** INVALID EMAIL ADDRESS ***" error message.
+				this->ClearScreen();
+				cout << endl << "\t\t\t  Create a New Customer Account"
+					<< endl << endl << endl << endl
+					<< "  Please enter your information below." << endl << endl << endl
+					<< "  *** INVALID EMAIL ADDRESS ***" << endl << endl
+					<< "     First Name: " + firstName << endl
+					<< "     Last Name: " + lastName << endl;
+			}
+		} while (!ValidateEmail(emailAddress)); // Loop the PIN prompt until a good email has been entered.
 
 		// ...and PIN...
-		cout << "     PIN: ";
-		cin >> pin;
-		this->ClearBuffer();
+		do
+		{
+			// Prompt for the pin
+			cout << "     PIN: ";
+			// Store the input from the user
+			cin >> pin;
+			// Clear the cin buffer
+			this->ClearBuffer();
+			// Check to see if the PIN is of the
+			// correct format (4-6 digit integer)
+			if (!ValidatePIN(pin))
+			{
+				// If the PIN isn't valid, redraw the screen with 
+				// an "*** INVALID PIN ***" error message.
+				this->ClearScreen();
+				cout << endl << "\t\t\t  Create a New Customer Account"
+					<< endl << endl << endl << endl
+					<< "  Please enter your information below." << endl << endl << endl
+					<< "  *** INVALID PIN ***" << endl << endl
+					<< "     First Name: " + firstName << endl
+					<< "     Last Name: " + lastName << endl
+					<< "     Email Address: " + emailAddress << endl;
+			}
+		} while (!ValidatePIN(pin)); // Loop the PIN prompt until a good PIN has been entered.
+
+		// This little bit re-draws the information in the console
+		// so that any potential error messages are removed and the 
+		// customer can focus on ensuring they entered everything
+		// correctly.
+		this->ClearScreen();
+		cout << endl << "\t\t\t  Create a New Customer Account"
+			<< endl << endl << endl << endl
+			<< "  Please enter your information below." << endl 
+			<< endl << endl
+			<< "     First Name: " + firstName << endl
+			<< "     Last Name: " + lastName << endl
+			<< "     Email Address: " + emailAddress << endl
+			<< "     PIN: " + std::to_string(pin);
 
 		// Ask the user to verify the information above as correct.
 		cout << endl << endl << endl 
 			<< "  Please review the information entered above." << endl		    
-			<< endl << endl << endl
+			<< endl << endl
 			<< "  Is this information correct? (Press \"Y\" for Yes and \"N\" for No)" << endl << endl
 			<< endl << endl
 			<< "  Press the Escape key to cancel.";
@@ -206,6 +261,33 @@ bool UI::ShowCreateNewCustomerProfileForm(Customer *cust)
 		this->ClearScreen();		
 		cout << "\n\n\n\n\t\t\t Account Creation Successful!\n\n";
 		return true;
+	}
+}
+
+// This was taken from "how do i check a user input string with email format" on stackoverflow.com 
+// http://stackoverflow.com/questions/14913341/how-do-i-check-a-user-input-string-with-email-format
+// this really only checks that it is a normal style email of "email@company.com"
+bool UI::ValidateEmail(string const& email)
+{
+	// Searches for the 1st @ in the input string.
+	// The 0 means it searches the entire string for the @ instance
+	size_t locationOfAT = email.find_first_of('@', 0);
+	// returns true as long as email.find_first_of() found an @ in the string
+	// AND if the . is at some location after the the @
+	return locationOfAT != std::string::npos && email.find_first_of('.', locationOfAT) != std::string::npos;
+}
+
+// Used to check that the user has entered an integer
+// between 4 and 6 digits in length (1000 < PIN < 999999)
+bool UI::ValidatePIN(int pin)
+{
+	if (pin >= 1000 && pin <= 999999)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
 
