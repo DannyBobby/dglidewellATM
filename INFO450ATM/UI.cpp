@@ -149,12 +149,12 @@ bool UI::ShowCreateNewCustomerProfileForm(Customer *cust)
 		cin >> firstName;
 		this->ClearBuffer();
 
-		// Repeat for Last Name...
+		// Get the customer's last name.
 		cout << "     Last Name: ";
 		cin >> lastName;
 		this->ClearBuffer();
 
-		// ...and email address...
+		// Get the customer's email address.
 		do 
 		{
 			// Prompt for the email address
@@ -179,7 +179,7 @@ bool UI::ShowCreateNewCustomerProfileForm(Customer *cust)
 			}
 		} while (!ValidateEmail(emailAddress)); // Loop the email prompt until a good email has been entered.
 
-		// ...and PIN...
+		// Get the customer's PIN.
 		do
 		{
 			// Prompt for the pin
