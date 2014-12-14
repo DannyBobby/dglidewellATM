@@ -33,11 +33,16 @@ public:
 	void PerformWithdrawal();
 	void PerformDeposit();
 	void PerformTransfer();
+
+	// These functions should be consolidated
+	// to reduce redundancy.
 	void ShowTransactionHistory();	
 	void ShowTransferHistory();
-	void ManageAccount();
-	void LogoutCustomer();
-	void ShutdownATM();
+		
+	void ManageAccount();    //<-- Change status of account to INACTIVE
+	void LogoutCustomer();   //<-- Clean-up procedure to prepare for the next user
+	void ShutdownATM();      //<-- Procedure to shutdown the ATM; removing objects 
+							 //    which were instantiated on the heap.
 };
 
 #endif

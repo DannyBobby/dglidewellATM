@@ -4,6 +4,8 @@
 
 using namespace std;
 
+#pragma region Objects instantiated for use by the ATM
+
 // UI object used to interface with the customer
 // This is necesary to keep the business logic 
 // separate from the UI.
@@ -20,11 +22,9 @@ Database *db = new Database();
 
 // This vector is used to store Page objects which facilitate the
 // display of the transactionHistory of an account.
-std::vector<Page> transactionHistory;
+std::vector<Page> history;
 
-// This vector is used to store Page objects which facilitate the
-// display of the transferHistory of an account.
-std::vector<Page> transferHistory;
+#pragma endregion
 
 // default ATM Constructor
 ATM::ATM()
@@ -48,7 +48,7 @@ bool ATM::Login() {
 		// prompts the User to enter their email
 		email = ui->ShowLoginPrompt();
 
-		// prompts the user to enter their PIN, without clearing the LoginPrompt
+		// prompts the user to enter their PIN
 		pin = ui->ShowPINPrompt();
 
 		// Get the customer data from the database using the email address provided
@@ -82,14 +82,21 @@ bool ATM::Login() {
 				}				
 			}
 			// Return false if the PINs do no match.
-			else				
+			else
+			{
+				ui->ShowErrorMessage("Invalid email address or PIN.");
 				return false;
+			}
+				
 		}
 		// If a bad customer email was given and the database could
 		// not build a customer object from the data, it should return 
 		// a customer number of zero.  Proceed no further.
 		else
+		{
+			ui->ShowErrorMessage("Invalid email address or PIN.");
 			return false;
+		}			
 	}
 	// If the user is not a returning customer, they must 
 	// have chosen to create a new customer profile.
@@ -100,12 +107,24 @@ bool ATM::Login() {
 	}
 }
 
+// Called during the Login() function if the user chooses to create a new account
 void ATM::CreateNewCustomer()
 {
+	// Show the screen which walks the customer through creating a new account.
+	// The data that the customer enters is stored in the customer object.
 	ui->ShowCreateNewCustomerProfileForm(customer);
+
+	// Using the customer object which was altered in the ui function call above,
+	// create a new record in the customer table of the database.
 	db->createCustomer(customer->GetLastName(), customer->GetFirstName(), customer->GetEmailAddress(), customer->GetPIN());
+
+	// This function call to the database's getCustomer() function is necessary because the 
+	// subsequent createAccount()function uses the customerNumber to create an account.
+	// The customer number is assigned by the DBMS, so we have to re-create the customer 
+	// object after the record has been made in order to get that customerNumber.
 	customer = db->getCustomer(customer->GetEmailAddress());
-	db->createAccount(customer->GetCustomerNumber(), "C");
+	db->createAccount(customer->GetCustomerNumber(), "C");  //<-- Hard-coded a "C" for checking account type.
+														    //    Clearly this can and should change in the future.
 }
 
 // The Main Menu uses a switch to determine what the user would like to do during this interaction.
@@ -113,15 +132,21 @@ void ATM::MainMenu() {
 
 	bool userLogout = false;
 	
+	// Used a do-while because invariably this logic will be called at least once.
 	do{
 		// This variable stores the integer returned by the UI's
 		// ShowTransactionTypeMenu() function.  The integer is
 		// used to determine what ATM-related action to perform.
-		int actionToBePerformed = 0;			
+		int actionToBePerformed = 0;
+
+		// Display the list of possible transactions available to the customer and 
+		// return the customer's choice to the actionToBePerformed variable.
 		actionToBePerformed = ui->ShowTransactionTypeMenu(customer->GetFirstName(), customer->GetLastName());
 
 		// Uses the result from above to call the function
 		// related to the user's desired transaction.
+		// See the ui function ShowTransactionTypeMenu() for
+		// more clarification.
 		switch (actionToBePerformed)
 		{
 		case 1:
@@ -150,6 +175,8 @@ void ATM::MainMenu() {
 			userLogout = true;
 			break;
 		}
+	// Do not break the loop until either the user has chosen to 
+	// log out or they have closed their account, making it INACTIVE.
 	} while (!userLogout && account->GetAccountStatus() == "ACTIVE");
 }
 
@@ -255,38 +282,69 @@ void ATM::PerformTransfer() {
 			// Show that the transaction was a success
 			ui->ShowTransactionSuccessMessage();
 
+			// Delete this object as it is only used 
+			// in the context of a transfer.
 			delete destinationAccount;
 		}
 		else
 			// If the user does not have sufficient funds to cover the withdrawal, display this error message.
 			ui->ShowErrorMessage("Insufficient funds in this account!");
 	}
+	// If the user has entered a bad email, resulting in null 
+	// values being returned to the destinationCustomer object,
+	// and they have NOT pressed the Escape key...
 	else if (destinationCustomer->GetCustomerNumber() == 0 && destCustomerEmail != "EscKeyPresedInShowDestAcctPrompt")
 	{
+		// Display this handy error message.
 		ui->ShowErrorMessage("No account exists for that email address.");
 	}	
+	// If the customer has entered the email for the account
+	// they are currently logged in as...
 	else if (destCustomerEmail == customer->GetEmailAddress())
 	{
+		// Display this handy error message.
 		ui->ShowErrorMessage("Cannot transfer to an account while it is being used.");
 	}
 
+	// Delete this object as it is only used 
+	// in the context of a transfer.
 	delete destinationCustomer;
 }
 
 // This logic executes if the user selected to view their TRANSACTION history from the Main Menu
+// I would like to consolidate the ShowTransactionHistory() and ShowTransferHistory() functions
+// because this code is extremely redundant.
 void ATM::ShowTransactionHistory() 
 {
-	db->populateTransactionHistory(account->GetAccountNumber(), &transactionHistory);
-	ui->ShowTransactionHistory(transactionHistory, customer->GetFirstName(), customer->GetLastName());	
-	transactionHistory.clear();
+	// Call upon the database and send it the account number and a vector which
+	// will be used to store "Page" objects which comprise a history.
+	db->populateTransactionHistory(account->GetAccountNumber(), &history);
+
+	// Use the UI to to display the newly-created history along with the customer's name.
+	ui->ShowTransactionHistory(history, customer->GetFirstName(), customer->GetLastName());
+
+	// Clear the history vector because another transaction could occur while
+	// this user is logged in and a new history will have to be built to
+	// reflect that.
+	history.clear();
 }
 
-// This logic executes if the user selected to view their TRANSFER history from the Main Menu
+// This logic executes if the user selected to view their TRANSFER history from the Main Menu.
+// I would like to consolidate the ShowTransferHistory() and ShowTransactionHistory() functions
+// because this code is extremely redundant.
 void ATM::ShowTransferHistory()
 {	
-	db->populateTransferHistory(account->GetAccountNumber(), &transferHistory);
-	ui->ShowTransferHistory(transferHistory, customer->GetFirstName(), customer->GetLastName());
-	transferHistory.clear();
+	// Call upon the database and send it the account number and a vector which
+	// will be used to store "Page" objects which comprise a history.
+	db->populateTransferHistory(account->GetAccountNumber(), &history);
+	
+	// Use the UI to to display the newly-created history along with the customer's name.
+	ui->ShowTransferHistory(history, customer->GetFirstName(), customer->GetLastName());
+	
+	// Clear the history vector because another transaction could occur while
+	// this user is logged in and a new history will have to be built to
+	// reflect that.
+	history.clear();
 }
 
 // This logic executes if the user selected to manage their account from the Main Menu
@@ -295,11 +353,13 @@ void ATM::ManageAccount()
 	// Call a UI function which displays a prompt to change 
 	// the account status and returns a boolean value.
 	bool changeStatus = ui->ShowChangeAccountStatusPrompt();
-	// If the boolean value is true, set the status of the 
-	// account to INACTIVE and update the database.
+	
+	// If the boolean value is true...
 	if(changeStatus)
 	{
+		// set the status of the account to INACTIVE...
 		account->SetAccountStatus("INACTIVE");
+		// and update the database.
 		db->updateStatus(account->GetAccountNumber(), account->GetAccountStatus());
 	}
 }
@@ -313,14 +373,15 @@ void ATM::LogoutCustomer()
 	db->updateBalance(account->GetAccountNumber(), account->GetAccountBalance());
 
 	// Clear out the vectors keeping track of the "pages" of the account's histories.	
-	transactionHistory.clear();
-	transferHistory.clear();
+	history.clear();
 }
 
 // This function simply cleans up any pointers that would
 // otherwise be left lying around after shutdown.
 void ATM::ShutdownATM()
 {
+	// Delete those objects which were
+	// instantiated on the heap.
 	delete customer;
 	delete account;
 	delete ui;
