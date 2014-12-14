@@ -177,7 +177,7 @@ bool UI::ShowCreateNewCustomerProfileForm(Customer *cust)
 					<< "     First Name: " + firstName << endl
 					<< "     Last Name: " + lastName << endl;
 			}
-		} while (!ValidateEmail(emailAddress)); // Loop the PIN prompt until a good email has been entered.
+		} while (!ValidateEmail(emailAddress)); // Loop the email prompt until a good email has been entered.
 
 		// ...and PIN...
 		do
