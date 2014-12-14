@@ -110,21 +110,32 @@ bool ATM::Login() {
 // Called during the Login() function if the user chooses to create a new account
 void ATM::CreateNewCustomer()
 {
+	// This boolean value is true only if the ShowCreateNewCustomerProfile function
+	// call below returns true.  This indicates that the user did not cancel the 
+	// new customer creation process.
+	bool proceedWithCustomerCreation = false;
+
 	// Show the screen which walks the customer through creating a new account.
 	// The data that the customer enters is stored in the customer object.
-	ui->ShowCreateNewCustomerProfileForm(customer);
+	proceedWithCustomerCreation = ui->ShowCreateNewCustomerProfileForm(customer);
 
-	// Using the customer object which was altered in the ui function call above,
-	// create a new record in the customer table of the database.
-	db->createCustomer(customer->GetLastName(), customer->GetFirstName(), customer->GetEmailAddress(), customer->GetPIN());
+	// If the customer has chosen to create an account, proceed.
+	if (proceedWithCustomerCreation)
+	{
+		// Using the customer object which was altered in the ui function call above,
+		// create a new record in the customer table of the database.
+		db->createCustomer(customer->GetLastName(), customer->GetFirstName(), customer->GetEmailAddress(), customer->GetPIN());
 
-	// This function call to the database's getCustomer() function is necessary because the 
-	// subsequent createAccount()function uses the customerNumber to create an account.
-	// The customer number is assigned by the DBMS, so we have to re-create the customer 
-	// object after the record has been made in order to get that customerNumber.
-	customer = db->getCustomer(customer->GetEmailAddress());
-	db->createAccount(customer->GetCustomerNumber(), "C");  //<-- Hard-coded a "C" for checking account type.
-														    //    Clearly this can and should change in the future.
+		// This function call to the database's getCustomer() function is necessary because the 
+		// subsequent createAccount()function uses the customerNumber to create an account.
+		// The customer number is assigned by the DBMS, so we have to re-create the customer 
+		// object after the record has been made in order to get that customerNumber.
+		customer = db->getCustomer(customer->GetEmailAddress());
+		
+		// Hard-coded a "C" for checking account type.
+		// Clearly this can and should change in the future.
+		db->createAccount(customer->GetCustomerNumber(), "C");  
+	}
 }
 
 // The Main Menu uses a switch to determine what the user would like to do during this interaction.
@@ -138,11 +149,11 @@ void ATM::MainMenu() {
 		// ShowTransactionTypeMenu() function.  The integer is
 		// used to determine what ATM-related action to perform.
 		int actionToBePerformed = 0;
-
+		
 		// Display the list of possible transactions available to the customer and 
 		// return the customer's choice to the actionToBePerformed variable.
 		actionToBePerformed = ui->ShowTransactionTypeMenu(customer->GetFirstName(), customer->GetLastName());
-
+		
 		// Uses the result from above to call the function
 		// related to the user's desired transaction.
 		// See the ui function ShowTransactionTypeMenu() for
@@ -201,7 +212,9 @@ void ATM::PerformWithdrawal()
 	// is then returned and stored in the "amountToWithdraw" variable declared below.
 	double amountToWithdraw = ui->ShowTransactionAmountMenu("withdrawn");
 
-	// Check to see if the customer has the available funds to perform the withdrawal
+	// Check to see if the customer has the available funds to perform the withdrawal.
+	// There is a comparison of amountToWithdraw to 0 because ShowTransactionAmountMenu()
+	// returns 0 if the user has hit the Escape key; cancelling the transaction.
 	if (amountToWithdraw != 0 && account->GetAccountBalance() >= amountToWithdraw)
 	{
 		// Subtract the amount of the withdrawal from the account's balance
@@ -228,6 +241,9 @@ void ATM::PerformDeposit()
 	// is then returned and stored in the "amountToDeposit" variable declared below.
 	double amountToDeposit = ui->ShowTransactionAmountMenu("deposited");
 
+	// As with the withdrawal function abovve, ShowTransactionAmountMenu will return
+	// 0 if the customer hits the Escape key instead of choosing an amount.  So if
+	// the user didn't hit the Escape key, proceed.
 	if (amountToDeposit != 0)
 	{
 		// Add the amount of the new deposit to the account's balance
@@ -255,7 +271,7 @@ void ATM::PerformTransfer() {
 	destCustomerEmail = ui->ShowDestinationAccountPrompt();
 	Customer *destinationCustomer = db->getCustomer(destCustomerEmail);
 		
-	if ((destinationCustomer->GetCustomerNumber() != 0) && (destCustomerEmail != "EscKeyPresedInShowDestAcctPrompt") && (destCustomerEmail != customer->GetEmailAddress()))
+	if ((destinationCustomer->GetCustomerNumber() != 0) && (destCustomerEmail != "EscKeyPressedInShowDestAcctPrompt") && (destCustomerEmail != customer->GetEmailAddress()))
 	{
 		Account *destinationAccount = db->getAccount(destinationCustomer->GetCustomerNumber(), "C");
 		// Prints a preconstructed transaction amounts menu (forces increments of $20)
@@ -293,7 +309,7 @@ void ATM::PerformTransfer() {
 	// If the user has entered a bad email, resulting in null 
 	// values being returned to the destinationCustomer object,
 	// and they have NOT pressed the Escape key...
-	else if (destinationCustomer->GetCustomerNumber() == 0 && destCustomerEmail != "EscKeyPresedInShowDestAcctPrompt")
+	else if (destinationCustomer->GetCustomerNumber() == 0 && destCustomerEmail != "EscKeyPressedInShowDestAcctPrompt")
 	{
 		// Display this handy error message.
 		ui->ShowErrorMessage("No account exists for that email address.");

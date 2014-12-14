@@ -39,7 +39,8 @@ Transaction::~Transaction()
 {
 }
 
-// Get and Set Functions
+#pragma region Get Functions
+
 int Transaction::GetTransactionNumber()
 {
 	return this->_transactionNumber;
@@ -64,3 +65,5 @@ string Transaction::GetDate()
 {
 	return this->_date;
 }
+
+#pragma endregion

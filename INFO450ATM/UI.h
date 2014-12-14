@@ -32,17 +32,38 @@ public:
 	// All of these functions print things to the screen.
 	// The function names are pretty self-explanatory.
 	bool ShowReturningCustomerNewCustomerPrompt();
-	void ShowCreateNewCustomerProfileForm(Customer *cust);
+	bool ShowCreateNewCustomerProfileForm(Customer *cust);
 	string ShowLoginPrompt();
 	int ShowPINPrompt();
+
+	// This function displays a menu to the customer with the possible
+	// types of transactions they can perform:
+	//       Withdrawal
+	//       Deposit
+	//       View Transaction History
+	//       ...
 	int ShowTransactionTypeMenu(string custFirstName, string custLastname);
+
+	// This functions displays a menu to the customer with the possible
+	// amounts which can be withdrawn, deposited, transferred, etc.
 	double ShowTransactionAmountMenu(char *actionToBePerformed);
+
+	// This function is used for Transfers.  
+	// It prompts the user for the account to which
+	// the transfer will be sent and also provides a
+	// way for the user to "back out" of the transaction.
 	string ShowDestinationAccountPrompt();
+
+	// These function names are pretty self-explanatory
 	void ShowAccountBalance(string custName, int acctNum, double acctBalance);
 	void ShowTransactionSuccessMessage();
 	void ShowErrorMessage(char *message);
+
+	// These functions are so similar that they really should be consolidated.
 	void ShowTransactionHistory(vector<Page> transactionHistory, string firstName, string lastName);
 	void ShowTransferHistory(vector<Page> transferHistory, string firstName, string lastName);
+
+	// Display instructions for changing the status of an account
 	bool ShowChangeAccountStatusPrompt();
 
 	// These functions are frequently used
@@ -50,7 +71,7 @@ public:
 	void ClearScreen();
 	void PauseScreen();
 	void PressAnyKeyToContinue(); //<--- Pauses screen and waits for a key press
-	void ClearBuffer();           //<--- used to clear cin buffer if needed
+	void ClearBuffer();           //<--- Used to clear the "cin buffer" - thanks C++!
 };
 
 #endif
