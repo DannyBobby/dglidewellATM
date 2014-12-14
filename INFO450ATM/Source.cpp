@@ -17,308 +17,36 @@ int main() {
 	// Boolean value for determining when to shutdown the ATM
 	bool atmShutdown = false;
 
+	// Create our ATM object and our UI object
 	ATM *atm = new ATM();
+	UI *mainUI = new UI();
 
 	do
 	{
+		// If the user has successfully logged in...
 		if (atm->Login())
 		{
+			// ...Show them the Main Menu
 			atm->MainMenu();
-		
 		}
-		// Prompt the user whether they would like to close the program
-		cout << "\n\n\n\n\t\t       Press any other key to continue." << endl << endl
-			<< "\t\t Strike the \" Esc \" key to close the program.";
 
-		// Get the integer value corresponding to the key that they struck
-		int key = _getch();
+		// The Main Menu is a loop, so once they choose to logout, execution picks
+		// up here.  This next bit is included in this program in order to give us the 
+		// option of turning off the program.  It doesn't make much sense for a production
+		// ATM, but for our purposes it works just fine.
 
-		// If the user has struck the "Esc" key, they intend on closing the program.
-		switch (key)
-		{		
-		case 27: // 27 is the integer returned by the Escape key
-			atmShutdown = true;
-			break;
-		}			
-	} while (!atmShutdown);		
+		// Determine if the user wants to exit the program.
+		atmShutdown = mainUI->PromptATMShutdown();
+				
+	} while (!atmShutdown);		// Keep looping until the user decides to exit the program
 
+	// Once the user decides to exit the program and the 
+	// loop is broken, call the ShutdownATM() function 
+	// which cleans up any objects which may still be 
+	// on the heap.
 	atm->ShutdownATM();
-	delete atm;
-
-#pragma region Load the Database
-	//Database *db = new Database();
-
-	/*Load the Customer Table*/
-	//Customer *customer;
-	//customer = db->createCustomer("Lavell", "Tucker", "lavelltj@vcu.edu", 2222);
-
-	//cout << "Customer Number: " << customer->GetCustomerNumber() << "\n"
-	//	<< "Customer First Name: " << customer->GetFirstName() << "\n"
-	//	<< "Customer Last Name: " << customer->GetLastName() << "\n"
-	//	<< "Customer Email Address: " << customer->GetEmailAddress() << "\n"
-	//	<< "Customer PIN: " << customer->GetPIN() << "\n";
-
-	//cout << "\n\n";
-
-	///*Load the Account Table*/
-	//Account *account;
-	//account = db->createAccount(customer->GetCustomerNumber(), "C");	
-
-	//cout << "Account Number: " << account->GetAccountNumber() << "\n"
-	//	<< "Customer Number: " << account->GetCustomerNumber() << "\n"
-	//	<< "Account Type: " << account->GetAccountType() << "\n"
-	//	<< "Account Balance: " << account->GetAccountBalance() << "\n";
-
-	//cout << "\n\n";
-
-	//system("pause");
-
-#pragma endregion
-
-#pragma region ATM tests
-	
-	/*bool loginSuccess = atm->login();
-
-	if (loginSuccess)
-	{
-		cout << "\n\nLogin Success! \n\n";
-	}
-	else
-	{
-		cout << "\n\nLogin Unsuccessfull...\n\n";
-	}	
-
-	system("pause");*/
-#pragma endregion	
-
-#pragma region Dannys Database Tests
-	//Database *db = new Database();
-
-#pragma region Database Tests Related to Customer Table
-	/*
-	Customer *customer; 
-	customer = db->createCustomer("Glidewell", "Danny", "dglidewell@vcu.edu", 1111);
-
-	cout << "Customer Number: " << customer->GetCustomerNumber() << "\n"
-		<< "Customer First Name: " << customer->GetFirstName() << "\n"
-		<< "Customer Last Name: " << customer->GetLastName() << "\n"
-		<< "Customer Email Address: " << customer->GetEmailAddress() << "\n"
-		<< "Customer PIN: " << customer->GetPIN() << "\n";
-
-	cout << "\n\n";
-	*/
-
-	/*
-	Customer *customer;
-	customer = db->getCustomer("lavelltj@vcu.edu");
-	cout << "Customer Number: " << customer->GetCustomerNumber() << "\n"
-		<< "Customer First Name: " << customer->GetFirstName() << "\n"
-		<< "Customer Last Name: " << customer->GetLastName() << "\n"
-		<< "Customer Email Address: " << customer->GetEmailAddress() << "\n"
-		<< "Customer PIN: " << customer->GetPIN() << "\n";
-	cout << "\n\n";
-	*/
-
-	/*
-	if (db->deleteCustomer("lavelltj@vcu.edu"))
-		cout << "Record deleted. \n\n";
-	else
-		cout << "No record deleted. \n\n";
-
-	customer = db->getCustomer("lavelltj@vcu.edu");
-	cout << "Customer Number: " << customer->GetCustomerNumber() << "\n"
-		<< "Customer First Name: " << customer->GetFirstName() << "\n"
-		<< "Customer Last Name: " << customer->GetLastName() << "\n"
-		<< "Customer Email Address: " << customer->GetEmailAddress() << "\n"
-		<< "Customer PIN: " << customer->GetPIN() << "\n";
-	cout << "\n\n";
-	*/
-
-#pragma endregion
-
-#pragma region Database Tests Related to Account Table
-	/*****************************
-	* Creation & Retrieval Tests *
-	******************************/
-	/*
-	Customer *customer = db->getCustomer("lavelltj@vcu.edu");
-
-	Account *account;
-	account = db->createAccount(customer->GetCustomerNumber(), "C");
-	account = db->getAccount(customer->GetCustomerNumber());
-
-	cout << "Account Number: " << account->GetAccountNumber() << "\n" 
-		<< "Customer Number: " << account->GetCustomerNumber() << "\n" 
-		<< "Account Type: " << account->GetAccountType() << "\n" 
-		<< "Account Balance: " << account->GetAccountBalance() << "\n";
-
-	cout << "\n\n";
-	*/	
-
-	/******************
-	 * Deletion Tests *
-	 ******************/
-	/*
-	Customer *customer = db->getCustomer("dglidewell@vcu.edu");
-	Account *account = db->getAccount(customer->GetCustomerNumber());
-	if (db->deleteAccount(account->GetAccountNumber()))
-		cout << "Account #" + std::to_string(account->GetAccountNumber()) +" deleted.";
-	else
-		cout << "Account doesn't exist.";
-	
-	cout << "\n\n";
-	*/
-
-	/****************************************************************************************************
-	 * Update Balance Tests  - NO LONGER WORKS BECAUSE "updateBalance()" doesn't return a boolean value *
-	 ****************************************************************************************************/
-	/*	
-	Customer *customer = db->getCustomer("dglidewell@vcu.edu");
-	Account *account = db->getAccount(customer->GetCustomerNumber());
-	cout << "Account Number: " << account->GetAccountNumber() << "\n"
-		<< "Customer Number: " << account->GetCustomerNumber() << "\n"
-		<< "Account Type: " << account->GetAccountType() << "\n"
-		<< "Account Balance: " << account->GetAccountBalance() << "\n";
-
-	cout << "\n\n";
-
-	double newBalance = 750;
-	if (db->updateBalance(account->GetAccountNumber(), newBalance))
-	{
-		account = db->getAccount(customer->GetCustomerNumber());
-		cout << "Account Number: " << account->GetAccountNumber() << "\n"
-			<< "Customer Number: " << account->GetCustomerNumber() << "\n"
-			<< "Account Type: " << account->GetAccountType() << "\n"
-			<< "Account Balance: " << account->GetAccountBalance() << "\n";
-
-		cout << "\n\n";
-	}
-	else
-	{
-		cout << "Transaction Unsuccessful\n\n";
-	}*/
-	
-#pragma endregion
-
-#pragma region Database Tests Related to AccountTransaction Table
-	/*****************************
-	* Creation & Retrieval Tests *
-	******************************/
-	/*
-	Customer *customer = db->getCustomer("dglidewell@vcu.edu");
-	Account *account = db->getAccount(customer->GetCustomerNumber());
-
-	double transAmt = 7.11;
-	string transType = "D";
-	db->createTransaction(account->GetAccountNumber(), transAmt, transType);
-
-	Transaction *transaction = db->getTransaction(10);
-
-	cout << "Transaction Number: " << transaction->GetTransactionNumber() << "\n"
-		<< "Account Number: " << transaction->GetAccountNumber() << "\n"
-		<< "Transaction Amount: " << transaction->GetTransactionAmount() << "\n"
-		<< "Transaction Type: " << transaction->GetTransactionType() << "\n"
-		<< "Transaction Date: " << transaction->GetDate();
-
-	cout << "\n\n";
-
-	system("pause");
-	*/	
-
-	/******************
-	* Deletion Tests *
-	******************/
-	/*	
-	int numOfTransactionToBeDeleted = 1;
-	Transaction *transaction = db->getTransaction(numOfTransactionToBeDeleted);
-	cout << "Transaction Number: " << transaction->GetTransactionNumber() << "\n"
-	<< "Account Number: " << transaction->GetAccountNumber() << "\n"
-	<< "Transaction Amount: " << transaction->GetTransactionAmount() << "\n"
-	<< "Transaction Type: " << transaction->GetTransactionType() << "\n"
-	<< "Transaction Date: " << transaction->GetDate();
-
-	cout << "\n\n";
-
-	if (db->deleteTransaction(numOfTransactionToBeDeleted))
-		cout << "Transaction #" + std::to_string(transaction->GetTransactionNumber()) +" deleted.";
-	else
-		cout << "Transaction doesn't exist.";
-
-	cout << "\n\n";
-	
-	transaction = db->getTransaction(numOfTransactionToBeDeleted);
-	cout << "Transaction Number: " << transaction->GetTransactionNumber() << "\n"
-		<< "Account Number: " << transaction->GetAccountNumber() << "\n"
-		<< "Transaction Amount: " << transaction->GetTransactionAmount() << "\n"
-		<< "Transaction Type: " << transaction->GetTransactionType() << "\n"
-		<< "Transaction Date: " << transaction->GetDate();
-
-	cout << "\n\n";
-	*/
-	
-#pragma endregion
-
-#pragma region Database Tests Related to AccountTransfer Table
-	/*****************************
-	* Creation & Retrieval Tests *
-	******************************/
-	/*Customer *customer = db->getCustomer("lavelltj@vcu.edu");
-	Account *account = db->getAccount(customer->GetCustomerNumber());
-
-	int destAcct = 1;
-	double transAmt = 7.11;
-	db->createTransfer(account->GetAccountNumber(), destAcct, transAmt);
-
-	Transfer *transfer = db->getTransfer(4);
-
-	cout << "Transfer Number: " << transfer->GetTransactionNumber() << "\n"
-		<< "Source Account Number: " << transfer->GetAccountNumber() << "\n"
-		<< "Destination Account Number: " << transfer->GetDestinationAccountNumber() << "\n"
-		<< "Transfer Amount: " << transfer->GetTransactionAmount() << "\n"
-		<< "Transaction Date: " << transfer->GetDate();
-
-	cout << "\n\n";
-
-	system("pause");*/
-
-	/******************
-	 * Deletion Tests *
-	 ******************/
-	/*
-	int numOfTransferToBeDeleted = 2;
-	Transfer *transfer = db->getTransfer(numOfTransferToBeDeleted);
-	cout << "Transfer Number: " << transfer->GetTransactionNumber() << "\n"
-		<< "Source Account Number: " << transfer->GetAccountNumber() << "\n"
-		<< "Destination Account Number: " << transfer->GetDestinationAccountNumber() << "\n"
-		<< "Transfer Amount: " << transfer->GetTransactionAmount() << "\n"
-		<< "Transaction Date: " << transfer->GetDate();
-
-	cout << "\n\n";
-
-	if (db->deleteTransfer(numOfTransferToBeDeleted))
-		cout << "Transfer #" + std::to_string(transfer->GetTransactionNumber()) + " deleted.";
-	else
-		cout << "Transfer doesn't exist.";
-
-	cout << "\n\n";
-	
-	transfer = db->getTransfer(numOfTransferToBeDeleted);
-	cout << "Transfer Number: " << transfer->GetTransactionNumber() << "\n"
-		<< "Source Account Number: " << transfer->GetAccountNumber() << "\n"
-		<< "Destination Account Number: " << transfer->GetDestinationAccountNumber() << "\n"
-		<< "Transfer Amount: " << transfer->GetTransactionAmount() << "\n"
-		<< "Transaction Date: " << transfer->GetDate();
-
-	cout << "\n\n";
-	*/
-#pragma endregion
-
-#pragma region Database Tests Related to Transaction History
-
-#pragma endregion
-
-	//system("pause");
-#pragma endregion
+	delete atm; // Delete the ATM object prior to stopping program execution.
+	delete mainUI; // Delete the UI object prior to stopping program execution.
 
 	return 0;
 }

@@ -29,7 +29,7 @@ private:
 	// Private functions for the Database object to use to create
 	// Pointers to SQLiteDatabase and SQLiteStatement objects.
 	SQLiteDatabase *connect() {
-		return new SQLiteDatabase("test.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 0);
+		return new SQLiteDatabase("atmdata.db", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 0);
 	}
 
 	SQLiteStatement *createStatement(SQLiteDatabase *pDatabase) {

@@ -74,6 +74,8 @@ public:
 	void PauseScreen();
 	void PressAnyKeyToContinue(); //<--- Pauses screen and waits for a key press
 	void ClearBuffer();           //<--- Used to clear the "cin buffer" - thanks C++!
+
+	bool PromptATMShutdown();
 };
 
 #endif
