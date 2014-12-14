@@ -590,10 +590,7 @@ public:
 // database tables for Transfers and Transactions needs to be re-thought and re-designed.
 #pragma region Functions related to Creating Transaction and Transfer Histories
 
-	// Function which populates a vector with Page objects.  It uses the accountNumber
-	// to find all those TRANSACTIONS for an account, list them in descending order, 
-	// build strings with the data, write those strings to a page, and add the page
-	// to a "history".
+	// Function which populates a stack with transaction objects.
 	void populateAccountTransactions(int accountNumber, stack<Transaction> *listOfTransactions)
 	{
 		// First create a pointer to a SQLiteDatabase using
@@ -635,10 +632,7 @@ public:
 		delete pStmt;
 	}
 
-	// Function which populates a vector with Page objects.  It uses the accountNumber
-	// to find all those TRANSFERS for an account, list them in descending order, 
-	// build strings with the data, write those strings to a page, and add the page
-	// to a "history".
+	// Function which populates a stack with transfer objects.
 	void populateAccountTransfers(int accountNumber, stack<Transfer> *listOfTransfers)
 	{
 		// First create a pointer to a SQLiteDatabase using

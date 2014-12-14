@@ -762,6 +762,8 @@ vector <Page> UI::BuildTransactionHistory(stack<Transaction> *listOfTransactions
 		/******************************************************************************
 		 *The following code is all about getting the format correct for each line.
 		 ******************************************************************************/
+
+		// We want to work with the transaction on the top of the stack.
 		Transaction workingTransaction = listOfTransactions->top();
 
 		// Get the length of the transactionNumber (it could be a single digit, two digits,
@@ -830,6 +832,7 @@ vector <Page> UI::BuildTransactionHistory(stack<Transaction> *listOfTransactions
 		transactionHistory.push_back(page);
 	}
 
+	// Return the newly-made transactionHistory
 	return transactionHistory;
 }
 
@@ -848,6 +851,11 @@ vector <Page> UI::BuildTransferHistory(stack <Transfer> *listOfTransfers)
 	// While their are still lines "waiting to be written" on the stack, loop.
 	while (listOfTransfers->size() > 0)
 	{
+		/******************************************************************************
+		*The following code is all about getting the format correct for each line.
+		******************************************************************************/
+
+		// We want to work with the transfer on the top of the stack.
 		Transfer workingTransfer = listOfTransfers->top();
 
 		// Determine column padding for transferNumber
@@ -933,6 +941,7 @@ vector <Page> UI::BuildTransferHistory(stack <Transfer> *listOfTransfers)
 		transferHistory.push_back(page);
 	}
 
+	// Return the newly-made transferHistory
 	return transferHistory;	
 }
 

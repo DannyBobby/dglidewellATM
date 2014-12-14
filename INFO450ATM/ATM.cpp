@@ -353,11 +353,11 @@ void ATM::ShowTransactionHistory()
 // because this code is extremely redundant.
 void ATM::ShowTransferHistory()
 {	
-	// Call upon the database and send it the account number and a vector which
-	// will be used to store "Page" objects which comprise a history.
+	// Call upon the database and send it the account number and a stack which 
+	// will be used to store the transfers tied to this account.
 	db->populateAccountTransfers(account->GetAccountNumber(), &listOfTransfers);
 	
-	// Use the UI to to display the newly-created history along with the customer's name.
+	// Use the UI to build and display a transfer history along with the customer's name.
 	ui->ShowTransferHistory(ui->BuildTransferHistory(&listOfTransfers), customer->GetFirstName(), customer->GetLastName());
 }
 
