@@ -24,6 +24,8 @@ using namespace std;
 
 class Database
 {
+private:
+
 	// Private functions for the Database object to use to create
 	// Pointers to SQLiteDatabase and SQLiteStatement objects.
 	SQLiteDatabase *connect() {
@@ -79,10 +81,10 @@ public:
 		// Use the SQLiteStatement pointer (pStmt) created 
 		// above to send a SQL statement to the database.
 		pStmt->Sql("INSERT INTO Customer (lastName, firstName, emailAddress, PIN) VALUES(?, ?, ?, ?);");
-		pStmt->BindString(1, lastName);      // First question mark in the VALUES() clause above
-		pStmt->BindString(2, firstName);     // Second question mark in the VALUES() clause above
-		pStmt->BindString(3, emailAddress);              // Third question mark in the VALUES() clause above
-		pStmt->BindInt(4, pin);  // Fourth question mark in the VALUES() clause above
+		pStmt->BindString(1, lastName);               // First question mark in the VALUES() clause above
+		pStmt->BindString(2, firstName);              // Second question mark in the VALUES() clause above
+		pStmt->BindString(3, emailAddress);           // Third question mark in the VALUES() clause above
+		pStmt->BindInt(4, pin);                       // Fourth question mark in the VALUES() clause above
 
 		// executes the INSERT statement and cleans-up automatically
 		pStmt->ExecuteAndFree();
@@ -318,12 +320,9 @@ public:
 		}
 	}
 
-	// updateBalance() takes an accountNumber and a positively or negatively valued
-	// double to retrieve the balance for a particular account and add the transaction
-	// amount to the balance.  We can simply add the value of transactionAmount to the 
-	// currentBalance of the Account because doubles inherently provide for signed 
-	// and unsigned values.  Thus, we can pass a negative double to this funciton for
-	// withdrawals and a positive number for deposits.
+	// updateBalance() takes an accountNumber and a double and uses each
+	// to change the value stored in the "balance" column for a particular
+	// row in the Account table.
 	void updateBalance(int accountNumber, double newBalance)
 	{
 		// First create a pointer to a SQLiteDatabase using 
@@ -333,8 +332,8 @@ public:
 		SQLiteStatement *pStmt = this->createStatement(pDatabase);
 	
 		pStmt->Sql("UPDATE Account SET balance = ? WHERE accountNumber = ?;");
-		pStmt->BindDouble(1, newBalance);
-		pStmt->BindInt(2, accountNumber);
+		pStmt->BindDouble(1, newBalance);     // First question mark in the VALUES() clause above
+		pStmt->BindInt(2, accountNumber);     // Second question mark in the VALUES() clause above
 		pStmt->ExecuteAndFree();
 
 		// De-allocate memory used to store pointers
@@ -342,7 +341,9 @@ public:
 		delete pStmt;
 	}
 
-	// Used to change the status of an account
+	// updateStatus() takes an accountNumber and a string and uses each
+	// to change the value stored in the "status" column for a particular
+	// row in the Account table.
 	void updateStatus(int accountNumber, string status)
 	{
 		// First create a pointer to a SQLiteDatabase using 
@@ -352,8 +353,8 @@ public:
 		SQLiteStatement *pStmt = this->createStatement(pDatabase);
 
 		pStmt->Sql("UPDATE Account SET status = ? WHERE accountNumber = ?;");
-		pStmt->BindString(1, status);
-		pStmt->BindInt(2, accountNumber);
+		pStmt->BindString(1, status);            // First question mark in the VALUES() clause above
+		pStmt->BindInt(2, accountNumber);        // Second question mark in the VALUES() clause above
 		pStmt->ExecuteAndFree();
 
 		// De-allocate memory used to store pointers
@@ -364,8 +365,7 @@ public:
 
 #pragma region Functions related to Transaction objects
 
-	// This function will encapsulate the logic to perform 
-	// withdrawals and deposits.
+	// Used to write new rows to the AccountTransaction table
 	void createTransaction(int accountNumber, double transactionAmt, string transactionType)
 	{
 		// First create a pointer to a SQLiteDatabase using 
@@ -391,6 +391,8 @@ public:
 		delete pStmt;
 	}
 
+	// Used to return a particular transaction from the AccountTransaction table if one knows
+	// the transaction number.
 	Transaction *getTransaction(int transactionNumber)
 	{
 		// Here are our variables which store the values which will be returned by 
@@ -434,11 +436,13 @@ public:
 		return new Transaction(retrievedTransactionNumber, retrievedAccountNumber, retrievedTransactionAmt, retrievedTransactionType, retrievedDate);
 	}
 
+	// Potential function to be used to edit rows in the AccountTransaction table
 	/*bool editTransaction()
 	{		
 		return false;
 	}*/
 
+	// Delete a row from the AccountTransaction table
 	bool deleteTransaction(int transactionNumber)
 	{
 		// First create a pointer to a SQLiteDatabase using 
@@ -477,6 +481,7 @@ public:
 
 #pragma region Functions related to Transfer objects
 	
+	// Create a row in the AccountTransfer table
 	void createTransfer(int sourceAccountNumber, int destinationAccount, double transactionAmt)
 	{
 		// First create a pointer to a SQLiteDatabase using 
@@ -580,19 +585,32 @@ public:
 
 #pragma endregion
 
+// These functions are so similar that they need to be combined somehow.  The objects and 
+// database tables for Transfers and Transactions needs to be re-thought and re-designed.
 #pragma region Functions related to Creating Transaction and Transfer Histories
 
+	// Function which populates a vector with Page objects.  It uses the accountNumber
+	// to find all those TRANSACTIONS for an account, list them in descending order, 
+	// build strings with the data, write those strings to a page, and add the page
+	// to a "history".
 	void populateTransactionHistory(int accountNumber, vector<Page> *transactionHistory)
 	{
-
+		// First create a pointer to a SQLiteDatabase using
+		// the connect() function defined above and then
+		// create a pointer to an SQLiteStatement object.
 		SQLiteDatabase *pDatabase = this->connect();
 		SQLiteStatement *pStmt = this->createStatement(pDatabase);
 
+		// Declare variables to store the retrieved data
+		// from the database.
 		int retrievedTransactionNumber = 0;		
 		double retrievedTransactionAmt = 0.0;
 		string retrievedTransactionType = "";
 		string retrievedDate = "";
 
+		// Prepare a vector which stores the lines 
+		// to be written to the page which is currently
+		// "in progress"
 		vector <string> linesToPage;
 
 		// Use the customerNumber and accountType passed to this method to query the database.
@@ -607,26 +625,40 @@ public:
 			retrievedTransactionAmt = pStmt->GetColumnDouble("transactionAmount");
 			retrievedTransactionType = pStmt->GetColumnString("transactionType");
 			retrievedDate = pStmt->GetColumnString("date");
-			
-			int sizeOfTransactionNumber = std::to_string(retrievedTransactionNumber).length();
-			string transactionNumColumnPadding = "";
 
+			/******************************************************************************
+			 *The following code is all about getting the format correct for each line.
+			 ******************************************************************************/
+				
+			// Get the length of the transactionNumber (it could be a single digit, two digits,
+			// three digits, etc.)
+			int sizeOfTransactionNumber = std::to_string(retrievedTransactionNumber).length();
+			string transactionNumColumnPadding = "";  // string variable to store the "padding"
+
+			// Build a string comprised of spaces.  The number of spaces is determined by the 
+			// difference between the "length" of the transaction number (in digits) and the number
+			// 6.  Why 6? Because it looks nice.
 			for (sizeOfTransactionNumber; sizeOfTransactionNumber < 6; sizeOfTransactionNumber++)
 			{
 				transactionNumColumnPadding += " ";
 			}
 
-			string retTransAmt = std::to_string(retrievedTransactionAmt);
-			size_t dotIndex = retTransAmt.find(".");
-			retTransAmt = retTransAmt.substr(0, dotIndex + 3);
-			int sizeOfTransactionAmt = retTransAmt.length();
-			string transactionAmtColumnPadding = "";
+			// Format the transactionAmount.  It's currency, so we only want
+			// two places after the decimal.
+			string retTransAmt = std::to_string(retrievedTransactionAmt);  // Turn it into a string
+			size_t dotIndex = retTransAmt.find(".");  // Find out where the "." is 
+			retTransAmt = retTransAmt.substr(0, dotIndex + 3);  // Trim the string
+			int sizeOfTransactionAmt = retTransAmt.length();  // Get the length of the string
+			string transactionAmtColumnPadding = "";  // string variable to store the padding.
 
+			// Build a string comprised of spaces in the same we as we did for the transactionNumber
+			// column above.
 			for (sizeOfTransactionAmt; sizeOfTransactionAmt < 10; sizeOfTransactionAmt++)
 			{
 				transactionAmtColumnPadding += " ";
 			}
 
+			// Build the line by concatenating the various strings created so far.
 			string additionalLine = "\t      " + std::to_string(retrievedTransactionNumber) + 
 				transactionNumColumnPadding + " |  $" +
 				transactionAmtColumnPadding + 
@@ -634,6 +666,8 @@ public:
 				retrievedTransactionType + "   |  " +
 				retrievedDate;
 
+			// Add the completed line to the vector representing the
+			// collection of lines on the page.
 			linesToPage.push_back(additionalLine);
 		}
 
@@ -667,11 +701,20 @@ public:
 		delete pStmt;
 	}
 
+	// Function which populates a vector with Page objects.  It uses the accountNumber
+	// to find all those TRANSFERS for an account, list them in descending order, 
+	// build strings with the data, write those strings to a page, and add the page
+	// to a "history".
 	void populateTransferHistory(int accountNumber, vector<Page> *transferHistory)
 	{
+		// First create a pointer to a SQLiteDatabase using
+		// the connect() function defined above and then
+		// create a pointer to an SQLiteStatement object.
 		SQLiteDatabase *pDatabase = this->connect();
 		SQLiteStatement *pStmt = this->createStatement(pDatabase);
 
+		// Declare variables to store the retrieved data
+		// from the database.
 		int retrievedTransferNumber = 0;
 		int retrievedSourceAccount = 0;
 		int retrievedDestinationAccount = 0;
@@ -784,4 +827,3 @@ public:
 	}
 #pragma endregion
 };
-
