@@ -7,11 +7,7 @@
 
 using namespace std;
 
-// Customer inherits all those basic attributes
-// of the Person class plus some customer-specific
-// attributes and behaviors.
-class Customer :
-	public Person
+class Customer
 {
 private:
 	int _customerNumber;
