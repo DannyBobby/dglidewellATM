@@ -18,7 +18,8 @@ Customer::~Customer()
 {
 }
 
-//Get Functions
+#pragma region Get Functions
+
 int Customer::GetCustomerNumber()
 {
 	return this->_customerNumber;
@@ -44,6 +45,10 @@ int Customer::GetPIN()
 	return this->_PIN;
 }
 
+#pragma endregion
+
+#pragma region Set Functions
+
 void Customer::SetFirstName(string fname)
 {
 	this->_custFirstName = fname;
@@ -63,3 +68,5 @@ void Customer::SetPIN(int pin)
 {
 	this->_PIN = pin;
 }
+
+#pragma endregion

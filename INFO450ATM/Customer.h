@@ -13,11 +13,7 @@ using namespace std;
 class Customer :
 	public Person
 {
-	// Despite being a number, no math is 
-	// being performed on customerNumber, 
-	// so I defined it and other similar
-	// attributes in other classes as char 
-	// arrays rather than a numeric datatype.
+private:
 	int _customerNumber;
 	string _emailAddress;
 	string _custFirstName;
@@ -29,23 +25,18 @@ public:
 	Customer(int custNum, string lastName, string firstName, string emailAddress, int pin);
 	~Customer();
 
-	//Get Functions
+	// Get Functions
 	int GetCustomerNumber();
 	string GetEmailAddress();
 	string GetFirstName();
 	string GetLastName();
 	int GetPIN();
+
+	// Set Functions
 	void SetFirstName(string fname);
 	void SetLastName(string lname);
 	void SetEmailAddress(string email);
 	void SetPIN(int pin);
-
-	// I can't decide if some of these functions are behaviors  
-	// of the Account class or the Customer class...
-	void OpenNewAccount();
-	void ViewListOfAccounts();
-	void MakeDeposit(float depositAmount); // <---- Especially this one...
-	void MakeWithdrawal(float withdrawalAmount); // <---- ...and this one
 };
 
 #endif
