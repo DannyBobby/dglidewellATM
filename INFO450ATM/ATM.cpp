@@ -20,10 +20,6 @@ Account *account;
 // This database object is used to communicate with the embedded SQLite database.
 Database *db = new Database();
 
-// This vector is used to store Page objects which facilitate the
-// display of the transactionHistory of an account.
-std::vector<Page> history;
-
 // This stack is used to store the list of TRANSACTIONS which
 // are used to create a transaction history for the customer.
 std::stack<Transaction> listOfTransactions;
@@ -78,16 +74,25 @@ bool ATM::Login() {
 
 				// Check to see if the account is "ACTIVE" or "INACTIVE".  
 				// If it's active, proceed.
-				if (account->GetAccountStatus() == "ACTIVE")
+				string status = account->GetAccountStatus();
+				
+				// If the status of the account is active, proceed
+				if (status == "ACTIVE")
 				{
 					return true;
 				}
-				// If it's not active, give an error message and proceed no further.
-				else
+				// If the status is inactive, give an error message and proceed no further.
+				else if (status == "INACTIVE")
 				{
 					ui->ShowErrorMessage("This account is currently inactive!");
 					return false;
-				}				
+				}
+				// If it isn't active or inactive, it must be frozen. Proceed no further.
+				else
+				{
+					ui->ShowErrorMessage("This account is currently frozen.");
+					return false;
+				}
 			}
 			// Return false if the PINs do no match.
 			else
@@ -364,16 +369,15 @@ void ATM::ShowTransferHistory()
 // This logic executes if the user selected to manage their account from the Main Menu
 void ATM::ManageAccount()
 {
+	string newStatus = "";
 	// Call a UI function which displays a prompt to change 
 	// the account status and returns a boolean value.
-	bool changeStatus = ui->ShowChangeAccountStatusPrompt();
+	bool changeStatus = ui->ShowChangeAccountStatusPrompt(account);
 	
 	// If the boolean value is true...
 	if(changeStatus)
 	{
-		// set the status of the account to INACTIVE...
-		account->SetAccountStatus("INACTIVE");
-		// and update the database.
+		// ...update the record in the account table with the new status.
 		db->updateStatus(account->GetAccountNumber(), account->GetAccountStatus());
 	}
 }
@@ -385,9 +389,6 @@ void ATM::LogoutCustomer()
 	// Update the currently logged-in user's account information stored in the database
 	// to refelct the account's new balance after all the transactions have taken place.
 	db->updateBalance(account->GetAccountNumber(), account->GetAccountBalance());
-
-	// Clear out the vectors keeping track of the "pages" of the account's histories.	
-	history.clear();
 }
 
 // This function simply cleans up any pointers that would

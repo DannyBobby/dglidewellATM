@@ -8,6 +8,7 @@
 #include "Customer.h"
 #include "Transaction.h"
 #include "Transfer.h"
+#include "Account.h"
 
 using namespace std;
 
@@ -74,7 +75,7 @@ public:
 	void ShowTransferHistory(vector<Page> transferHistory, string firstName, string lastName);
 
 	// Display instructions for changing the status of an account
-	bool ShowChangeAccountStatusPrompt();
+	bool ShowChangeAccountStatusPrompt(Account *account);
 
 	// These functions are frequently used
 	// to manipulate output to the screen.

@@ -1141,43 +1141,159 @@ void UI::ShowTransferHistory(vector<Page> transferHistory, string firstName, str
 }
 
 // Displays a prompt for the user to use if they want to "close" their account
-bool UI::ShowChangeAccountStatusPrompt()
+bool UI::ShowChangeAccountStatusPrompt(Account *account)
 {
-	// Prompt the user: Do you want to make your account inactive?
-	this->ClearScreen();
-	cout << endl << endl << endl << "  Make Account Inactive? (Y/N)";
+	bool changeStatus = false;
+	
+	// Variables used to display what the 
+	// customer currently has selected
+	string select1 = "*";
+	string select2 = " ";
+	string select3 = " ";
 
-	// Find out what key they pressed
-	int key = _getch();
+	// Stores what key has been hit by
+	// the customer.
+	int keyboardHit = 0;
 
-	// If they hit "Y" (_getch() returns 121 when "Y" is pressed)
-	if (key == 121)
+	// Re-draw the menu as long as the user has
+	// not hit the Enter key.
+	while (keyboardHit != KEY_ENTER)
 	{
-		// Ask the user again, are you really really sure?
-		cout << endl << endl << endl << endl << endl << endl << endl << endl
-			<< "  Are you absolutely sure you want to make this account INACTIVE?" 
-			<< endl << endl << endl << endl
-			<< "  You will be logged out immediately following this action. (Y/N)";
+		this->ClearScreen();
+		cout << endl
+			<< "\t\t\t    *******************************" << endl
+			<< "\t\t\t    * Customer Account Management *" << endl
+			<< "\t\t\t    *******************************" << endl
+			<< endl
+			<< endl
+			<< " Please choose from the menu below" << endl
+			<< endl
+			<< "\t[" << select1 << "] 1) Close Account" << endl         //<---- Choice #1
+			<< "\t[" << select2 << "] 2) Issue Fraud Alert" << endl     //<---- Choice #2
+			<< "\t[" << select3 << "] 3) Return to Main Menu" << endl;  //<---- Choice #3
 
-		// Find out what they pressed
-		key = _getch();
+		// Get keyboard input from the customer
+		keyboardHit = _getch();
 
-		// If they pressed "Y" again...
+		// This switch moves the asterisk amongst the menu
+		// items depending on what key has been hit
+		switch (keyboardHit)
+		{
+		case KEY_DOWN:
+			if (select1 == "*")
+			{
+				select1 = " ";
+				select2 = "*";
+			}
+			else if (select2 == "*")
+			{
+				select2 = " ";
+				select3 = "*";
+			}
+			else if (select3 == "*")
+			{
+				select3 = " ";
+				select1 = "*";
+			}
+			break;
+
+		case KEY_UP:
+			if (select1 == "*")
+			{
+				select1 = " ";
+				select3 = "*";
+			}
+			else if (select2 == "*")
+			{
+				select2 = " ";
+				select1 = "*";
+			}
+			else if (select3 == "*")
+			{
+				select3 = " ";
+				select2 = "*";
+			}
+			break;
+		}
+	}
+
+	// After the Enter Key has been pressed, determine
+	// what selection was made by which variable has 
+	// the asterisk assigned to it.
+	if (select1 == "*")
+	{
+		// Prompt the user: Do you want to make your account inactive?
+		this->ClearScreen();
+		cout << endl << endl << endl << "  Make Account Inactive? (Y/N)";
+
+		// Find out what key they pressed
+		int key = _getch();
+
+		// If they hit "Y" (_getch() returns 121 when "Y" is pressed)
 		if (key == 121)
 		{
-			// return true, which signals to the calling function that
-			// the customer does indeed intend to close the account.
-			return true;
+			// Ask the user again, are you really really sure?
+			cout << endl << endl << endl << endl << endl << endl << endl << endl
+				<< "  Are you absolutely sure you want to make this account INACTIVE?"
+				<< endl << endl << endl << endl
+				<< "  You will be logged out immediately following this action. (Y/N)";
+
+			// Find out what they pressed
+			key = _getch();
+
+			// If they pressed "Y" again...
+			if (key == 121)
+			{
+				// return true, which signals to the calling function that
+				// the customer does indeed intend to close the account.
+				account->SetAccountStatus("INACTIVE");
+				changeStatus = true;
+			}
 		}
-		// Otherwise, don't do anything because the 
-		// customer changed their mind.
-		else
-			return false;
-	}		
-	// Otherwise, don't do anything because the 
-	// customer changed their mind.
+	}
+	else if(select2 == "*")
+	{
+		// Prompt the user: Do you want to make your account inactive?
+		this->ClearScreen();
+		cout << endl << endl << endl << "  Issue Fraud Alert? (Y/N)";
+
+		// Find out what key they pressed
+		int key = _getch();
+
+		// If they hit "Y" (_getch() returns 121 when "Y" is pressed)
+		if (key == 121)
+		{
+			// Ask the user again, are you really really sure?
+			cout << endl << endl << endl << endl 
+				<< "  Are you absolutely sure you want to FREEZE this account?" << endl
+				<< endl << endl << endl
+				<< "  An alert will be sent to the credit reporting agencies on your behalf: " << endl 
+				<< endl
+				<< "      Equifax" << endl
+				<< "      Experian" << endl
+				<< "      Trans Union" << endl
+				<< endl << endl << endl << endl << endl
+				<< "  You will be logged out immediately following this action. Are you sure? (Y/N)";
+
+			// Find out what they pressed
+			key = _getch();
+
+			// If they pressed "Y" again...
+			if (key == 121)
+			{
+				// return true, which signals to the calling function that
+				// the customer does indeed intend to close the account.
+				account->SetAccountStatus("ACTIVE");
+				changeStatus = true;
+			}
+		}
+	}
 	else
-		return false;	
+	{
+		changeStatus = false;
+	}
+
+	return changeStatus;
 }
 
 // Clear the screen - THIS CODE IS NOT MY OWN.
